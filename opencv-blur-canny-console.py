@@ -1,4 +1,5 @@
-#!/usr/bin/python2
+#!/usr/bin/python
+#
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -14,11 +15,9 @@
 #  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston,
 #  MA 02110-1301, USA.
 #  
-#  Use it, but if it breaks something, blame no one but yourself
 #
-#  DJ Shaji 
-#  djshaji@gmail.com
-
+# Version 13.02.2016
+#
 
 from __future__ import division
 
@@ -97,6 +96,9 @@ class Canny (Gtk.Grid):
     contour_thickness = Gtk.SpinButton.new_with_range (1.0, 20.0, 1.0)
     color_button = Gtk.ColorButton.new_with_color (Gdk.Color.from_floats (0, 1, 0))
     color_button.set_use_alpha (False)
+    show_contours = Gtk.Entry.new ()
+    show_contours_all = Gtk.CheckButton.new_with_label ("All")
+    show_contours_all.set_active (1)
     # this is just brilliant! python is simply amazing :)
     for c in l2_gradient.get_children (), only_contours.get_children ():
         for i in c:
@@ -113,6 +115,12 @@ class Canny (Gtk.Grid):
         self.attach (self.threshold1, 1, 3, 1, 1)
         self.attach (Gtk.Label.new ("Threshold 2"), 1, 4, 1, 1)
         self.attach (self.threshold2, 1, 5, 1, 1)        
+        l = Gtk.Label ("Show Contours")
+        l.set_justify (2)
+        self.attach (l, 1, 6, 1, 1)
+        #self.attach (Gtk.Label.new ("All"), 1, 7, 1, 1)
+        self.attach (self.show_contours_all, 1, 8, 1, 1)
+        self.attach (self.show_contours, 1, 7, 1, 1)        
         self.attach (Gtk.Label.new ("Aperture"), 3, 1, 1, 1)
         self.attach (self.aperture, 3, 2, 1, 1)
         self.attach (self.l2_gradient, 3, 3, 1, 1)
@@ -123,7 +131,7 @@ class Canny (Gtk.Grid):
         self.attach (self.contour_thickness, 3, 6, 1, 1)
         self.attach (self.color_button, 3, 7, 1, 1)
         self.set_column_spacing (10)
-        self.set_row_spacing (10)
+        self.set_row_spacing (5)
     
     def do_canny (self, image):
         if not self.on.get_active ():
@@ -135,6 +143,24 @@ class Canny (Gtk.Grid):
                 None, \
                 self.aperture.get_value_as_int (), \
                 self.l2_gradient.get_active ())
+        
+        cn = self.show_contours.get_text ()
+        begin = -1
+        end = -1
+
+        if len (cn) > 0:
+            if ":" in cn:
+                split = cn.split (":")
+                begin = int (split [0])
+                end = int (split [1])
+            else:
+                begin = int (cn)
+        
+        if not self.show_contours_all.get_active ():
+            if begin >= 0 and end >= 0:
+                canny = canny [begin:end]
+            elif begin >= 0:
+                canny = canny [begin]
         
         if not self.only_contours.get_active ():
             return canny
@@ -605,7 +631,8 @@ class UI:
     
     master = Gtk.VBox.new (False, 0)
     window.add (master)
-    window.set_title ("OpenCV Blur + Canny Console")
+    window.set_title ("Control Panel")
+    window.set_icon_from_file ("/usr/local/share/icons/clover.png")
     
     # If you want a custom header bar
     #window.set_decorated (False)
@@ -1033,6 +1060,8 @@ class UI:
         self.canny.aperture.connect ("value-changed", self.do_effects)
         self.canny.contour_thickness.connect ("value-changed", self.do_effects)
         self.canny.color_button.connect ("color-set", self.do_effects)
+        self.canny.show_contours_all.connect ("toggled", self.do_effects)
+        self.canny.show_contours.connect ("activate", self.do_effects)
     
     def connect_blur_signals (self):
         self.blur.config.box_filter_on.connect ("state-set", self.do_effects)
