@@ -195,7 +195,17 @@ class Canny (Gtk.Grid):
                 canny = canny [begin]
         
         if not self.only_contours.get_active ():
-            return canny
+            #return canny
+            mat = np.ndarray ([image.shape [0], image.shape [1], 3], image.dtype)
+            mat.fill (0)
+            method = self.methods [self.method.get_active ()]
+            mode = self.modes [self.mode.get_active ()]
+            color = self.color_button.get_color ().to_floats ()
+            c = Color (rgb = color)
+            new_color = tuple ([c.blue * 255, c.green * 255, c.red * 255])
+            cn, hr = cv2.findContours (canny, mode, method)
+            cv2.drawContours (mat, cn, -1, new_color, self.contour_thickness.get_value_as_int ())
+            return mat
         else:
             color = self.color_button.get_color ().to_floats ()
             c = Color (rgb = color)
