@@ -1,5 +1,5 @@
-#!/usr/bin/python
-#
+#!/usr/bin/python2
+
 #  This program is free software; you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
 #  the Free Software Foundation; either version 2 of the License, or
@@ -16,8 +16,7 @@
 #  MA 02110-1301, USA.
 #  
 #
-# Version 13.02.2016
-#
+#  Version 14.02.2016
 
 from __future__ import division
 
@@ -99,6 +98,30 @@ class Canny (Gtk.Grid):
     show_contours = Gtk.Entry.new ()
     show_contours_all = Gtk.CheckButton.new_with_label ("All")
     show_contours_all.set_active (1)
+    mode = Gtk.ComboBoxText.new ()
+    mode.append_text ("EXTERNAL")
+    mode.append_text ("LIST")
+    mode.append_text ("CCOMP")
+    mode.append_text ("TREE")
+    
+    method = Gtk.ComboBoxText.new ()
+    method.append_text ("NONE")
+    method.append_text ("SIMPLE")
+    method.append_text ("TC89_L1")
+    method.append_text ("TC89_KCOS")
+    
+    modes = (cv2.RETR_EXTERNAL,
+             cv2.RETR_LIST,
+             cv2.RETR_CCOMP,
+             cv2.RETR_TREE)
+    
+    methods = (cv2.CHAIN_APPROX_NONE,
+               cv2.CHAIN_APPROX_SIMPLE,
+               cv2.CHAIN_APPROX_TC89_L1,
+               cv2.CHAIN_APPROX_TC89_KCOS)
+    
+    method.set_active (0)
+    mode.set_active (0)
     # this is just brilliant! python is simply amazing :)
     for c in l2_gradient.get_children (), only_contours.get_children ():
         for i in c:
@@ -121,6 +144,11 @@ class Canny (Gtk.Grid):
         #self.attach (Gtk.Label.new ("All"), 1, 7, 1, 1)
         self.attach (self.show_contours_all, 1, 8, 1, 1)
         self.attach (self.show_contours, 1, 7, 1, 1)        
+        l = Gtk.Label.new ("Contour\nretrieval\nmode")
+        l.set_justify (2)
+        self.attach (l, 1, 9, 1, 1)
+        self.attach (self.mode, 3, 9, 3, 1)
+        
         self.attach (Gtk.Label.new ("Aperture"), 3, 1, 1, 1)
         self.attach (self.aperture, 3, 2, 1, 1)
         self.attach (self.l2_gradient, 3, 3, 1, 1)
@@ -130,6 +158,10 @@ class Canny (Gtk.Grid):
         self.attach (l, 3, 5, 1, 1)
         self.attach (self.contour_thickness, 3, 6, 1, 1)
         self.attach (self.color_button, 3, 7, 1, 1)
+        l = Gtk.Label ("Contour\napproximation\nmethod")
+        l.set_justify (2)
+        self.attach (l, 1, 10, 1, 1)
+        self.attach (self.method, 3, 10, 1, 1)
         self.set_column_spacing (10)
         self.set_row_spacing (5)
     
@@ -169,7 +201,10 @@ class Canny (Gtk.Grid):
             c = Color (rgb = color)
             new_color = tuple ([c.blue * 255, c.green * 255, c.red * 255])
             #print new_color
-            cn, hr = cv2.findContours (canny, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE)
+            method = self.methods [self.method.get_active ()]
+            mode = self.modes [self.mode.get_active ()]
+            #print mode, method, "s"
+            cn, hr = cv2.findContours (canny, mode, method)
             cv2.drawContours (image, cn, -1, new_color, self.contour_thickness.get_value_as_int ())
             return image
 
@@ -1062,6 +1097,8 @@ class UI:
         self.canny.color_button.connect ("color-set", self.do_effects)
         self.canny.show_contours_all.connect ("toggled", self.do_effects)
         self.canny.show_contours.connect ("activate", self.do_effects)
+        self.canny.method.connect ("changed", self.do_effects)
+        self.canny.mode.connect ("changed", self.do_effects)
     
     def connect_blur_signals (self):
         self.blur.config.box_filter_on.connect ("state-set", self.do_effects)
