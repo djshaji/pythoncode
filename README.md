@@ -2,6 +2,19 @@
 My python code (currently mostly gtk3 / opencv)
 
 ---------------------------------
+XKCD Color Browser
+---------------------------------
+Color Browser for xkcd color survey. You can see
+a sample of ~200 named colors from the survey 
+conducted by Randall.
+
+See xkcd.com/color/rgb for details.
+
+You need a json file with the color descriptions.
+Get it from here:
+https://github.com/charlesreid1/xkcd-colors/blob/master/xkcd-colors.json
+
+---------------------------------
 * opencv-blur-canny-console.py *
 ---------------------------------
 
